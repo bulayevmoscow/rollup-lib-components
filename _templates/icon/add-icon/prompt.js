@@ -1,12 +1,14 @@
-const dir = './src/icons'
+const dir = './src/icons/'
 const {listOfFilesRecursive} = require('./utils')
 
 const toCapitalize = (string) => {
-    return string[0].toUpperCase() + string.slice(1).toLowerCase();
+    return string[0].toUpperCase() + string.slice(1);
 }
 
 const toConvertNamespace = (str) => {
-    return str.replace(/\/./g, (m) => m[1].toUpperCase())
+    const res =  str.replace(/\/./g, (m) => m[1].toUpperCase())
+    console.log(str, res)
+    return  res
 }
 
 const toCamelCase = (str) => {
@@ -27,13 +29,12 @@ const generateTemplate = ({dir, svgIsComponent}) => {
     const output = files.map(file => {
         if (/\.(gif|png|jpe?g|svg)$/i.test(file)) {
             const {fileName, ext} = /(?<fileName>.*)\.(?<ext>.*)$/gm.exec(file).groups;
-            // console.log(1, fileName);
+            const updatedFilePath = `.${toRemoveSubsting(file, dir)}`
             const modifedFileName = toCapitalize(toConvertNamespace(toCamelCase(toRemoveSubstringFromStart(toRemoveSubsting(fileName, dir)))))
-            console.log(2, modifedFileName, ext);
             if (svgIsComponent && /.svg$/.test(file)) {
-                return `export { ReactComponent as Icon${modifedFileName} } from '${file}'`
+                return `export { ReactComponent as Icon${modifedFileName} } from '${updatedFilePath}'`
             } else {
-                return `export { default as img${modifedFileName} } from '${file}'`
+                return `export { default as Icon${modifedFileName} } from '${updatedFilePath}'`
             }
         }
         return ''
@@ -47,10 +48,10 @@ const questions = {
     header: '========================',
     message: 'Import SVG files as ReactComponent',
     footer: '========================',
+    default: false
 }
 
-const {BooleanPrompt} = require('enquirer');
-console.log(BooleanPrompt);
+
 module.exports = {
     prompt: ({inquirer}) => {
         return inquirer.BooleanPrompt
@@ -58,7 +59,7 @@ module.exports = {
             .then((arg) => {
                 console.log(1, arg);
                 return {
-                    files: generateTemplate({dir: dir,})
+                    files: generateTemplate({dir: dir, svgIsComponent: arg})
                 };
             })
     }
